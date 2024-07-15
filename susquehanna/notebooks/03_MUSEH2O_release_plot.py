@@ -8,7 +8,7 @@ import random
 import numpy as np
 import matplotlib.pyplot as plt
 from platypus import Problem, EpsNSGAII, Real, ProcessPoolEvaluator
-import csv
+#import csv
 import logging
 from itertools import chain
 

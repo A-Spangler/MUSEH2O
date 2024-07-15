@@ -16,11 +16,9 @@ logging.basicConfig(level=logging.INFO)
 plt.rcParams["figure.figsize"] = [12, 8]
 # sys.path.append('..')
 
-
 sys.path.append(os.path.abspath(".."))
 from susquehanna_model import SusquehannaModel
 import rbf_functions
-
 
 rbfs =[
     rbf_functions.squared_exponential_rbf,
@@ -41,7 +39,6 @@ for entry in rbfs:
 
     pareto_sets[name] = results
 
-
 rbfs = [
     rbf_functions.squared_exponential_rbf,
     rbf_functions.original_rbf,
@@ -59,7 +56,6 @@ for entry in rbfs:
         os.path.join("./refsets", f"{name}_refset_with_variables.csv")
     )
 
-
 for filename in os.listdir("../data1999"):
     if filename.startswith("w"):
         globals()[f"{filename[:-4]}"] = np.loadtxt(f"../data1999/{filename}")
@@ -69,11 +65,11 @@ for filename in os.listdir("../data1999"):
             os.path.join("../data1999", filename)
         )
 
-
-entry = rbfs[0]
+# choose which RBF to run, don't want to print all 7
+entry = rbfs[1]
 reference_set = reference_sets[entry.__name__]
 
-# setup the RBF network
+# set up the RBF network
 n_inputs = 2  # (time, storage of Conowingo)
 n_outputs = 4  # Atomic, Baltimore, Chester, Downstream:- (hydropower, environmental)
 n_rbfs = n_inputs + 2
@@ -94,54 +90,16 @@ output = []
 for _, row in reference_set.iloc[0:10, 0:32].iterrows():
     output.append(susquehanna_river.evaluate(row))
 
-
 level_CO, level_MR, ratom, rbalt, rches, renv = susquehanna_river.get_log()
 
-
-'''
+# plotting the releases
 import matplotlib.pyplot as plt
-import seaborn as sns
-import numpy as np
-
-alpha = 0.1
-lw = 0.3
-
-# Specify the first RBF entry to use
-entry = rbfs[0]
-name = entry.__name__
-reference_set = reference_sets[name]
-
-numberOfRBF = 6  # numberOfInput + 2
-n_inputs = 2  # (time, storage of Conowingo)
-n_outputs = 4  # Atomic, Baltimore, Chester, Downstream:- (hydropower, environmental)
-n_rbfs = n_inputs + 2
-rbf = rbf_functions.RBF(n_rbfs, n_inputs, n_outputs, rbf_function=entry)
-
-# Initialize model
-nobjs = 6
-n_years = 1
-susquehanna_river = SusquehannaModel(
-    108.5, 505.0, 5, n_years, rbf
-)  # l0, l0_MR, d0, years
-susquehanna_river.set_log(True)
-
-# Evaluate the model for each row in the reference set
-for _, row in reference_set.iloc[:, 0:32].iterrows():
-    susquehanna_river.evaluate(row)
-
-# Retrieve outputs 
-level_CO, level_MR, ratom, rbalt, rches, renv = susquehanna_river.get_log()
-
-
-
-# Plotting
 fig, ax = plt.subplots(figsize=(8, 6))
 
-
 for release in renv:
-    ax.plot(release, c='grey', linewidth=lw, alpha=alpha)
+    ax.plot(release, c='grey', linewidth=0.3, alpha=0.1)
     ax.plot(min_flow_req, "black", ls="--", linewidth=1)
-
+    ax.plot(salinity_min_flow_req, "black", ls="--", linewidth=1)
     ax.set_ylabel("log(releases)")
     ax.set_title("(d) Environmental requirements", loc="left", weight="bold")
     ax.set_yscale("log")
@@ -151,61 +109,6 @@ for release in renv:
 fig.tight_layout(pad=1.0)
 #plt.savefig(f"figs/{name}/{name}_releases.jpg")
 plt.show()
-'''''
-
-
-import matplotlib.pyplot as plt
-import seaborn as sns
-import numpy as np
-
-alpha = 0.1
-lw = 0.3
-
-# Specify the first RBF entry to use
-entry = rbfs[0]
-name = entry.__name__
-reference_set = reference_sets[name]
-
-numberOfRBF = 6  # numberOfInput + 2
-n_inputs = 2  # (time, storage of Conowingo)
-n_outputs = 4  # Atomic, Baltimore, Chester, Downstream:- (hydropower, environmental)
-n_rbfs = n_inputs + 2
-rbf = rbf_functions.RBF(n_rbfs, n_inputs, n_outputs, rbf_function=entry)
-
-# Initialize model
-nobjs = 6
-n_years = 1
-susquehanna_river = SusquehannaModel(
-    108.5, 505.0, 5, n_years, rbf
-)  # l0, l0_MR, d0, years
-susquehanna_river.set_log(True)
-
-# Evaluate the model for each row in the reference set
-for _, row in reference_set.iloc[:, 0:32].iterrows():
-    susquehanna_river.evaluate(row)
-
-# Retrieve outputs including renv
-level_CO, level_MR, ratom, rbalt, rches, renv = susquehanna_river.get_log()
-
-''''
-# Select renv values for a specific iteration
-iteration_to_plot = 2392
-renv_at_iteration = renv[iteration_to_plot]
-
-# Plotting
-fig, ax = plt.subplots(figsize=(8, 6))
-
-ax.plot(renv_at_iteration, c='grey', linewidth=lw, alpha=alpha)
-ax.plot(min_flow_req, "black", ls="--", linewidth=1)
-
-ax.set_ylabel("log(releases)")
-ax.set_title("(d) Environmental requirements", loc="left", weight="bold")
-ax.set_yscale("log")
-ax.set_xlabel("day")
-
-fig.tight_layout(pad=1.0)
-plt.show()
-''''
 
 
 
