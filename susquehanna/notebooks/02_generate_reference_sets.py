@@ -26,8 +26,7 @@ rbfs = [
 
 # rbf_functions previously executed, __name__solution.csv files produced
 # the code pulls these solutions and organizes them into pareto_sets dictionary
-# pareto_sets dictionary is then used to develop release plots
-
+# pareto_sets dictionary contains each rbf and the associated solutions or pareto set
 # __name__solution.csv files are generated in main_susquehana.py
 
 pareto_sets = {}
@@ -43,13 +42,13 @@ for entry in rbfs:
             solutions.append(df_temp.values.tolist())
 
     pareto_sets[name] = list(chain.from_iterable(solutions))
-
+''''
 pareto_sets.keys()
 print("Amount of solutions for each RBF:")
 for rbf in pareto_sets:
     print(rbf, len(pareto_sets[rbf]))
 print(f"Loaded into list 'solutions': {', '.join(sollist)}")
-
+'''
 
 rbfs = [
     rbf_functions.squared_exponential_rbf,
@@ -63,8 +62,7 @@ rbfs = [
 
 # iterates over each RBF with different seeds
 # loads RBF solutions and decision variables
-# organizes into pareto_sets dictionary 
-
+# organizes into pareto_sets dictionary
 pareto_sets = {}
 for entry in rbfs:
     sets_per_seed = []
@@ -82,24 +80,13 @@ for entry in rbfs:
 
     pareto_sets[name] = pd.concat(sets_per_seed)
 
-
-#print("Amount of solutions for each RBF:")
-#for rbf in pareto_sets:
-#    print(rbf, len(pareto_sets[rbf]))
-
-
-# # Create reference set for each RBF, and save:
-
-# this code produces the reference set per RBF, and in the stored results
+# #sort to find nondominated solutions, create reference set
 # also includes the associated decision variables
-
-#sort to find nondominated solutions, store as reference sets
-
 reference_sets = {}
 for rbf in pareto_sets:
     data = pareto_sets[rbf] #list
 
-    print(rbf, len(data))
+    #print(rbf, len(data))
     nondominated = pareto.eps_sort(
         [data.values],
         [32, 33, 34, 35, 36, 37], # objectives indicies by collumn number
@@ -108,22 +95,33 @@ for rbf in pareto_sets:
     )
     reference_sets[rbf] = nondominated
     df_nondom = pd.DataFrame(nondominated, columns=data.columns)
-    print(rbf, len(nondominated))
+    #print(rbf, len(nondominated))
     df_nondom.to_csv(
         f"./refsets/{rbf}_refset_with_variables.csv", index=False, header=True
     )
 
-
-#sometimes this cell doesn't run. Not sure why, try editing 'nondominated' and rerun
-
+# Create ref set without variables
+# rbf is a string with rbf names
+# pareto_sets is a dictionary containing rbf name and a list of solutions
+# Doing a nondominated sort on a Pandas Data Frame requires itertuples(False)
 reference_sets = {}
 for rbf in pareto_sets:
     print(rbf, len(pareto_sets[rbf]))
+
+    # Convert the list of solutions to a DataFrame
+    df = pd.DataFrame(pareto_sets[rbf], columns=[
+        "hydropower",
+        "atomicpowerplant",
+        "baltimore",
+        "chester",
+        "environment",
+        "recreation"
+    ])
     nondominated = pareto.eps_sort(
-        [pareto_sets[rbf]],
+        [list(df.itertuples(index=False))],  # Use itertuples(False) to get rows without the index
         [0, 1, 2, 3, 4, 5],
         [0.5, 0.05, 0.05, 0.05, 0.001, 0.05],
-        maximize=[0, 1, 2, 3, 5],
+        maximize=[0, 1, 2, 3, 5]
     )
     reference_sets[rbf] = nondominated
     df_nondom = pd.DataFrame(
