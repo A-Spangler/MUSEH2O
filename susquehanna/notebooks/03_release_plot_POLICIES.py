@@ -99,9 +99,9 @@ fig, ax = plt.subplots(figsize=(8, 6))
 for release in renv:
     ax.plot(release, c='grey', linewidth=0.3, alpha=0.1)
     ax.plot(min_flow_req, "black", ls="--", linewidth=1)
-    ax.plot(salinity_min_flow_req, "black", ls="--", linewidth=1)
+#    ax.plot(salinity_min_flow_req, "black", ls="--", linewidth=1)
     ax.set_ylabel("log(releases)")
-    ax.set_title("(d) Environmental requirements", loc="left", weight="bold")
+    ax.set_title("Daily Dam Releases", loc="left", weight="bold")
     ax.set_yscale("log")
     ax.set_xlabel("day")
     
