@@ -19,7 +19,7 @@ plt.rcParams["figure.figsize"] = [12, 8]
 
 sys.path.append(os.path.abspath(".."))
 from susquehanna_model import SusquehannaModel
-import rbf_functions
+from notebooks import rbf_functions
 
 
 rbfs = [

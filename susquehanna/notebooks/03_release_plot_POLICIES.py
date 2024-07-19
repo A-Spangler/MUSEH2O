@@ -14,11 +14,9 @@ from itertools import chain
 
 logging.basicConfig(level=logging.INFO)
 plt.rcParams["figure.figsize"] = [12, 8]
-# sys.path.append('..')
-
 sys.path.append(os.path.abspath(".."))
 from susquehanna_model import SusquehannaModel
-import rbf_functions
+from notebooks import rbf_functions
 
 rbfs =[
     rbf_functions.squared_exponential_rbf,
@@ -30,6 +28,7 @@ rbfs =[
     rbf_functions.matern52_rbf,
 ]
 
+'''
 pareto_sets = {}
 for entry in rbfs:
     name = entry.__name__
@@ -38,8 +37,8 @@ for entry in rbfs:
     results["environment"] = 1 - results["environment"]
 
     pareto_sets[name] = results
-
-rbfs = [
+    
+rbfs =[
     rbf_functions.squared_exponential_rbf,
     rbf_functions.original_rbf,
     rbf_functions.inverse_quadratic_rbf,
@@ -48,7 +47,7 @@ rbfs = [
     rbf_functions.matern32_rbf,
     rbf_functions.matern52_rbf,
 ]
-
+'''
 reference_sets = {}
 for entry in rbfs:
     name = entry.__name__
@@ -59,17 +58,29 @@ for entry in rbfs:
 for filename in os.listdir("../data1999"):
     if filename.startswith("w"):
         globals()[f"{filename[:-4]}"] = np.loadtxt(f"../data1999/{filename}")
-    #elif filename == "salinity_min_flow_req.txt":
     elif filename == "min_flow_req.txt":
         globals()[f"{filename[:-4]}"] = np.loadtxt(
             os.path.join("../data1999", filename)
         )
+    elif filename == "salinity_min_flow_req.txt":
+        globals()[f"{filename[:-4]}"] = np.loadtxt(
+            os.path.join("../data1999", filename)
+        )
+
+# ___________________________________________________________________________________________________________
+# plot one RBF release plot with salinity/FERC req lines
 
 # choose which RBF to run, don't want to print all 7
-entry = rbfs[1]
-reference_set = reference_sets[entry.__name__]
 
-# set up the RBF network
+alpha = 0.1
+lw = 0.3
+
+# Specify the first RBF entry to use
+entry = rbfs[0]
+name = entry.__name__
+reference_set = reference_sets[name]
+
+numberOfRBF = 6  # numberOfInput + 2
 n_inputs = 2  # (time, storage of Conowingo)
 n_outputs = 4  # Atomic, Baltimore, Chester, Downstream:- (hydropower, environmental)
 n_rbfs = n_inputs + 2
@@ -81,35 +92,37 @@ n_years = 1
 susquehanna_river = SusquehannaModel(
     108.5, 505.0, 5, n_years, rbf
 )  # l0, l0_MR, d0, years
-# l0 = start level cono, l0_MR = start level muddy run, d0 = startday > friday = 5
-
 susquehanna_river.set_log(True)
 
-output = []
-# iterate over solutions
-for _, row in reference_set.iloc[0:10, 0:32].iterrows():
-    output.append(susquehanna_river.evaluate(row))
+# Evaluate the model for each row in the reference set
+for _, row in reference_set.iloc[:, 0:32].iterrows():
+    susquehanna_river.evaluate(row)
 
+# Retrieve outputs including renv
 level_CO, level_MR, ratom, rbalt, rches, renv = susquehanna_river.get_log()
+
+# from susquehanna_model import create_path
+if not os.path.exists(f"figs/{name}/releases"):
+    os.makedirs(f"figs/{name}/releases")
 
 # plotting the releases
 import matplotlib.pyplot as plt
-fig, ax = plt.subplots(figsize=(8, 6))
+fig, ax = plt.subplots(figsize=(16, 6))
 
 for release in renv:
-    ax.plot(release, c='grey', linewidth=0.3, alpha=0.1)
-    ax.plot(min_flow_req, "black", ls="--", linewidth=1)
-#    ax.plot(salinity_min_flow_req, "black", ls="--", linewidth=1)
+    line1, = ax.plot(release, c='grey', linewidth=0.3, alpha=0.4, label = 'Flow')
+    line2, = ax.plot(min_flow_req, "black", ls="--", linewidth=1, label = 'FERC flow requirement')
+    line3, = ax.plot(salinity_min_flow_req, "blue", ls="--", linewidth=1, label = 'Salinity and FERC flow requirement')
     ax.set_ylabel("log(releases)")
     ax.set_title("Daily Dam Releases", loc="left", weight="bold")
     ax.set_yscale("log")
     ax.set_xlabel("day")
-    
+    ax.legend(handles=[line1, line2, line3], loc='lower left')
 
 fig.tight_layout(pad=1.0)
-#plt.savefig(f"figs/{name}/{name}_releases.jpg")
+plt.savefig(f"figs/{name}/{name}_2req_releases.svg")
 plt.show()
 
-
+# ___________________________________________________________________________________________________________
 
 
