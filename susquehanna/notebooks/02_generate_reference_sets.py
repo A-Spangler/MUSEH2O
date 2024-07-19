@@ -6,10 +6,10 @@ import numpy as np
 import pareto
 import os
 from itertools import chain
-import rbf_functions
-import sys
 
+import sys
 sys.path.append("..")
+from notebooks import rbf_functions
 
 # # Load solutions for each RBF for all seeds:
 
@@ -117,8 +117,9 @@ for rbf in pareto_sets:
         "environment",
         "recreation"
     ])
+    # Use itertuples(False) to get rows without the index
     nondominated = pareto.eps_sort(
-        [list(df.itertuples(index=False))],  # Use itertuples(False) to get rows without the index
+        [list(df.itertuples(index=False))],
         [0, 1, 2, 3, 4, 5],
         [0.5, 0.05, 0.05, 0.05, 0.001, 0.05],
         maximize=[0, 1, 2, 3, 5]
@@ -137,7 +138,7 @@ for rbf in pareto_sets:
     )
     print(rbf, len(df_nondom))
     df_nondom.to_csv(f"../notebooks/refsets/{rbf}_refset.csv", index=False, header=True)
-
+#df_nondom is refset
 
 # # Find decision variables that belong to the generated refset:
 

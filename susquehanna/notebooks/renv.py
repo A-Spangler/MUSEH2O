@@ -58,7 +58,7 @@ norm = Normalize(vmin=all_areas.min(), vmax=all_areas.max())
 cmap = plt.cm.jet
 
 # Create the figure and axes
-fig, axs = plt.subplots(2, 1, figsize=(10, 10))
+fig, axs = plt.subplots(2, 1, figsize=(16, 10))
 
 # Plotting FERC minimum flow
 for release, area in zip(renv, areas_ferc):
